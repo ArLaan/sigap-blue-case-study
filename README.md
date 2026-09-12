@@ -6,7 +6,7 @@ replaced a paper-and-spreadsheet process at DINAS PERHUBUNGAN in Jakarta.
 Built solo, in production, on a runtime I could not choose.
 
 > **Note on the code.** This repository contains the write-up only. The application
-> itself belongs to the agency and handles records for real vehicle-inspection cards,
+> itself belongs to the DISHUB and handles records for real vehicle-inspection cards,
 > so it is not public. Everything below describes decisions and trade-offs, not
 > deployable code.
 
