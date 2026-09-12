@@ -1,7 +1,7 @@
 # Building a card-inventory system for a government vehicle-inspection unit
 
 A four-month case study: designing, building and shipping a stock-tracking system that
-replaced a paper-and-spreadsheet process at a provincial transport agency in Jakarta.
+replaced a paper-and-spreadsheet process at DINAS PERHUBUNGAN in Jakarta.
 
 Built solo, in production, on a runtime I could not choose.
 
