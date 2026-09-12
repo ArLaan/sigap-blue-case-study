@@ -1,12 +1,12 @@
 # Building a card-inventory system for a government vehicle-inspection unit
 
 A four-month case study: designing, building and shipping a stock-tracking system that
-replaced a paper-and-spreadsheet process at a provincial transport agency in Jakarta.
+replaced a paper-and-spreadsheet process at Dinas Perhubungan (Dishub) — a provincial transport agency in Jakarta.
 
 Built solo, in production, on a runtime I could not choose.
 
 > **Note on the code.** This repository contains the write-up only. The application
-> itself belongs to the agency and handles records for real vehicle-inspection cards,
+> itself belongs to Dishub and handles records for real vehicle-inspection cards,
 > so it is not public. Everything below describes decisions and trade-offs, not
 > deployable code.
 
@@ -14,7 +14,7 @@ Built solo, in production, on a runtime I could not choose.
 
 ## The problem
 
-A government unit issues **BLUe cards** — roadworthiness certificates for commercial
+Dishub issues **BLUe cards** — roadworthiness certificates for commercial
 vehicles. Cards arrive from the provincial government in sealed cartons, move through a
 warehouse, then an office, then to service counters, and are finally handed to vehicle
 owners.
@@ -84,7 +84,7 @@ records. Each inner box can then be tracked independently once it is physically 
 
 ### 3. Scanning instead of typing
 
-Cards carry official codes issued by the provincial government, in a fixed structured
+Cards carry official codes issued by the provincial government (Dishub), in a fixed structured
 format encoding a serial range, a quantity, and whether the code names an outer carton
 or an inner box.
 
