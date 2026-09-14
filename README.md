@@ -45,7 +45,7 @@ nobody could say why.
 
 ---
 
-## Three decisions worth explaining
+## Four decisions worth explaining
 
 ### 1. Anchoring everything to the physical box
 
@@ -102,6 +102,36 @@ the single guard preventing the same cards being registered twice.
 
 ---
 
+### 4. Undoing an intake by deleting data on purpose
+
+Every other correction in this system is append-only. Sending a box to the wrong counter
+is reversed by writing a second, opposite movement — the ledger then shows both the
+mistake and the correction, which is what an audit trail is for.
+
+Cancelling an *intake* could not work that way, and it took me a while to accept why.
+
+When a clerk mis-scans a delivery, the system registers a range of serial numbers as
+received. A guard prevents the same physical cards ever being registered twice — which is
+correct, and which also means a mis-scan is **permanent**. Those cards can never be
+entered correctly. The guard cannot tell a duplicate from a correction.
+
+So the fix has to actually release the serial range, and that means destroying the
+records the bad scan created. There is no version of this that only adds rows.
+
+What I kept is the receipt: the original record survives, marked cancelled, carrying who
+cancelled it, when, and why — and the reason is mandatory, because once the card records
+are gone that receipt is the only evidence left. Two guards keep it narrow: a box can only
+be cancelled while every card is still exactly where the intake put it, *and* while it has
+no movement history at all. A box that went out to an office and came back looks untouched
+by the first test and fails the second — it has been in circulation, so its intake was
+never the mistake.
+
+**What I learned:** "never delete" is a good default, not a law. The question is what the
+record is *for*. Here the audit trail needed to survive; the operational rows did not, and
+keeping them would have preserved evidence of something that never validly happened.
+
+---
+
 ## A mistake I made, and how it was caught
 
 The production server was misconfigured in a way that would show PHP stack traces —
@@ -128,11 +158,51 @@ wrong twice in a row about the same thing, stop reasoning and go reproduce it.
 
 ---
 
+## The bug that seven reviews missed
+
+The cancellation feature went through a task-by-task review — seven pieces, each one read
+and checked before the next was written. Every piece passed. A final review of the whole
+branch, read as one change, found something none of them could have.
+
+The design document contained an audit: every place in the code that reads the intake
+records, and what each one needed to do about a cancelled one. It was thorough. It was
+also, entirely, an audit of the **application code** — and I had carried that framing into
+every piece of the work.
+
+The blocker was in the database. Two columns on that table carried uniqueness constraints
+dating from the original build. A cancelled record keeps its box code and its first serial
+number, because that record is the receipt. So the corrected re-scan would pass every check
+I had written, reach the database, and be rejected there for duplicating the receipt.
+
+The clerk would see *"Failed to save, please try again"* — advice that could never succeed.
+And by that point the cancellation had already deleted the card records. The cards would be
+**gone and still un-enterable**: worse than if the feature had never been built.
+
+Fixing it meant relaxing a database constraint, which is the sort of change that should
+make you uncomfortable. What made it acceptable is that the application now enforces the
+same rule more strictly than the constraint ever did — it compares whole serial *ranges*,
+catching overlaps a single-column constraint cannot see. What it does not do is survive two
+clerks submitting at the same instant, so that gap is written down in the project's risk
+register rather than left to be rediscovered.
+
+I confirmed the constraints on the live database before changing anything, rather than
+trusting the schema file in the repository.
+
+**What I learned:** an audit is only as wide as its framing. Mine said "find every query"
+when it should have said "find everything that can reject this write." Reviewing pieces
+catches piece-sized bugs; something has to read the whole thing.
+
+---
+
 ## What the system does now
 
 - **Intake** — scan an official carton or box code; the system parses it, checks the
   serial range does not overlap anything already registered, and generates one record
   per individual card.
+- **Correcting an intake** — a mis-scanned delivery can be retracted, releasing its serial
+  range so the cards can be entered correctly. The retraction is permanent, requires a
+  written reason, and is refused for any box that has already moved. A carton registered
+  as one unit is retracted as one unit.
 - **Warehouse → office** — a request-and-approval flow, fulfilled by scanning the boxes
   physically handed over rather than by the system picking for you.
 - **Office → counter** — the same scan-driven model.
